@@ -2,8 +2,8 @@
   "name": "aozora_importdb",
   "version": "0.1.0",
   "description": "import Aozora books/persons information to a DB",
-  "main": "index.js",
   "scripts": {
+    "execute": "node csv2db.js && node pid2db.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Kenichi Sato <ksato9700@gmail.com>",
