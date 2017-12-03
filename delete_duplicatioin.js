@@ -6,13 +6,11 @@ const mongodb_host = process.env.AOZORA_MONGODB_HOST || 'localhost';
 const mongodb_port = process.env.AOZORA_MONGODB_PORT || '27017';
 const mongo_url = `mongodb://${mongodb_credential}${mongodb_host}:${mongodb_port}/aozora`;
 
-const fix_fullname = async (db) => {
-  const books = db.collection('books');
-  let duplicates = [];
-
-  cursor = books.aggregate([
+const delete_duplicates = async (collection, id_condition) => {
+  const bulk = collection.initializeUnorderedBulkOp();
+  cursor = collection.aggregate([
     { $group: {
-      _id: {book_id: "$book_id"},
+      _id: id_condition,
       dups: { $addToSet: "$_id"},
       count: { "$sum": 1}
     }},
@@ -21,41 +19,32 @@ const fix_fullname = async (db) => {
     }}
   ]);
 
-  while(await cursor.hasNext()) {
+  while(true) {
     const doc = await cursor.next();
     if (doc == null) {
-      return;
+      break;
     }
     doc.dups.shift();
-    duplicates.push(doc.dups[0]);
-    // console.log(duplicates);
-  }
-  console.log(duplicates.length);
-
-  const bulk = books.initializeUnorderedBulkOp();
-  // console.log(await books.find({_id: {$in: duplicates}}).count());
-  
-  bulk.find({_id: {$in: duplicates}}).remove();
-  bulk.execute();
-
-  db.close();
-
-/*
-  find().each((err, book) => {
-    if (book == null) {
-      db.close();
-      return;
+    for (let did of doc.dups) {
+      bulk.find({_id: did}).remove();
     }
-
-      
-    books.update({_id: book._id}, book);
-  });
-*/
-}
+  }
+  console.log(`${collection.collectionName}: ${bulk.length} entries will be removed`);
+  if (bulk.length > 0) {
+    let result = await bulk.execute();
+    console.log('done\n', result);
+  }
+};
 
 const run = async () => {
   const db = await mongodb.MongoClient.connect(mongo_url);
-  fix_fullname(db);
+  try {
+    await Promise.all([delete_duplicates(db.collection('books'), {book_id: "$book_id"}),
+                       delete_duplicates(db.collection('persons'), {person_id: "$person_id"})]);
+  } catch (error) {
+    console.error(error);
+  }
+  db.close();
 };
 
 run();
