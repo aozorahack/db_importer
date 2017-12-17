@@ -11,10 +11,9 @@ const mongodb_port = process.env.AOZORA_MONGODB_PORT || '27017';
 const mongo_url = `mongodb://${mongodb_credential}${mongodb_host}:${mongodb_port}/aozora`;
 
 const LIST_URL_BASE = 'https://github.com/aozorabunko/aozorabunko/raw/master/index_pages/';
-const LISTFILE_INP = 'list_inp_person_all_utf8.zip';
 const LIST_URL_PUB = 'list_person_all_extended_utf8.zip';
 
-PERSON_EXTENDED_ATTRS = [
+const PERSON_EXTENDED_ATTRS = [
   'book_id',
   'title',
   'title_yomi',
@@ -72,7 +71,7 @@ PERSON_EXTENDED_ATTRS = [
   'html_updated'
 ];
 
-ROLE_MAP = {
+const ROLE_MAP = {
   '著者': 'authors',
   '翻訳者': 'translators',
   '編者': 'editors',
@@ -158,7 +157,7 @@ const import_to_db = async (db, refresh) => {
   let updated;
   if (refresh) {
     updated = data;
-      
+
   } else {
     const the_latest_item = await books.findOne({}, {fields: {release_date: 1},
                                                      sort: {release_date: -1}});
@@ -170,7 +169,7 @@ const import_to_db = async (db, refresh) => {
     });
   }
 
-  console.log(`${updated.length} entries are updated`);
+  console.log(`${updated.length} entries are updated`);  // eslint-disable-line no-console
 
   if(updated.length > 0) {
     let books_batch_list = {};
@@ -201,14 +200,10 @@ const import_to_db = async (db, refresh) => {
 };
 
 const run = async () => {
-  
+
   const db = await mongodb.MongoClient.connect(mongo_url);
   const refresh = process.argv[2];
   import_to_db(db, refresh);
 };
 
 run();
-
-
-
-

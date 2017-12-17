@@ -8,11 +8,11 @@ const mongo_url = `mongodb://${mongodb_credential}${mongodb_host}:${mongodb_port
 
 const delete_duplicates = async (collection, id_condition) => {
   const bulk = collection.initializeUnorderedBulkOp();
-  cursor = collection.aggregate([
+  const cursor = collection.aggregate([
     { $group: {
       _id: id_condition,
-      dups: { $addToSet: "$_id"},
-      count: { "$sum": 1}
+      dups: { $addToSet: '$_id'},
+      count: { '$sum': 1}
     }},
     { $match: {
       count: { $gt: 1}
@@ -29,18 +29,19 @@ const delete_duplicates = async (collection, id_condition) => {
       bulk.find({_id: did}).remove();
     }
   }
+  // eslint-disable-next-line no-console
   console.log(`${collection.collectionName}: ${bulk.length} entries will be removed`);
   if (bulk.length > 0) {
     let result = await bulk.execute();
-    console.log('done\n', result);
+    console.log('done\n', result); // eslint-disable-line no-console
   }
 };
 
 const run = async () => {
   const db = await mongodb.MongoClient.connect(mongo_url);
   try {
-    await Promise.all([delete_duplicates(db.collection('books'), {book_id: "$book_id"}),
-                       delete_duplicates(db.collection('persons'), {person_id: "$person_id"})]);
+    await Promise.all([delete_duplicates(db.collection('books'), {book_id: '$book_id'}),
+                       delete_duplicates(db.collection('persons'), {person_id: '$person_id'})]);
   } catch (error) {
     console.error(error);
   }

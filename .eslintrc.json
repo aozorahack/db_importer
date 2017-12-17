@@ -1,0 +1,40 @@
+{
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2017
+  },
+  "extends": "eslint:recommended",
+  "rules": {
+    "indent": [
+      "error",
+      2,
+      {
+        "ArrayExpression": "first",
+        "ObjectExpression": "first"
+      }
+    ],
+    "no-constant-condition": [
+      "error",
+      { "checkLoops": false }
+    ],
+    "no-console": [
+      "error",
+      { "allow": ["warn", "error"] }
+    ],
+    "linebreak-style": [
+      "error",
+      "unix"
+    ],
+    "quotes": [
+      "error",
+      "single"
+    ],
+    "semi": [
+      "error",
+      "always"
+    ]
+  }
+}

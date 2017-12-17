@@ -14,10 +14,11 @@ const fix_fullname_books = async (db) => {
   while(true) {
     let book = await cur.next();
     if (book == null) {
+      // eslint-disable-next-line no-console
       console.log(`${bulk.length} books will be changed`);
       if (bulk.length > 0) {
         let bulk_result = await bulk.execute();
-        console.log('done\n', bulk_result.toJSON());
+        console.log('done\n', bulk_result.toJSON()); // eslint-disable-line no-console
       }
       break;
     }
@@ -48,10 +49,11 @@ const fix_fullname_persons = async (db) => {
   while(true) {
     let person = await cur.next();
     if (person == null) {
+      // eslint-disable-next-line no-console
       console.log(`${bulk.length} persons will be changed`);
       if (bulk.length > 0) {
         let bulk_result = await bulk.execute();
-        console.log('done\n', bulk_result.toJSON());
+        console.log('done\n', bulk_result.toJSON()); // eslint-disable-line no-console
       }
       break;
     }

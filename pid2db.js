@@ -8,14 +8,10 @@ const mongodb_host = process.env.AOZORA_MONGODB_HOST || 'localhost';
 const mongodb_port = process.env.AOZORA_MONGODB_PORT || '27017';
 const mongo_url = `mongodb://${mongodb_credential}${mongodb_host}:${mongodb_port}/aozora`;
 
-const LIST_URL_BASE = 'https://github.com/aozorabunko/aozorabunko/raw/master/index_pages/';
-const LISTFILE_INP = 'list_inp_person_all_utf8.zip';
-const LIST_URL_PUB = 'list_person_all_extended_utf8.zip';
-
 const scrape_url = (idurl) => {
   return scraperjs.StaticScraper.create(idurl)
     .scrape(($) => {
-      return $("tr[valign]").map(function() {
+      return $('tr[valign]').map(function() {
         return {id: $(this).find(':nth-child(1)').text().trim(),
                 name: $(this).find(':nth-child(2)').text().trim().replace('　',' ')};
       }).get();
@@ -33,7 +29,6 @@ const idurls = {
 const run = async () => {
   const db = await mongodb.MongoClient.connect(mongo_url);
   for(let idname in idurls) {
-    ;
     const idurl = idurls[idname];
     const bulk_ops = (await scrape_url(idurl)).map((item) => {
       item.id = parseInt(item.id);
@@ -41,7 +36,7 @@ const run = async () => {
                           update: item,
                           upsert: true}};
     });
-    console.log(`updated ${bulk_ops.length} entries`);
+    console.log(`updated ${bulk_ops.length} entries`); // eslint-disable-line no-console
     await db.collection(idname).bulkWrite(bulk_ops);
   }
   db.close();
