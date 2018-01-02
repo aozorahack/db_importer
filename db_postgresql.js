@@ -5,7 +5,7 @@ const ATTRS = require('./attrs').ATTRS;
 
 class DB {
   constructor() {
-    this.client = new pg.Client();
+    this.client = new pg.Client({database: 'aozora'});
   }
 
   async connect() {
