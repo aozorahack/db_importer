@@ -11,9 +11,11 @@
   "license": "MIT",
   "dependencies": {
     "adm-zip": "0.4.7",
+    "command-line-args": "4.0.7",
     "csv-parse": "2.0.0",
     "dotenv": "4.0.0",
     "mongodb": "2.2.33",
+    "pg": "7.4.0",
     "request": "2.83.0",
     "request-promise": "4.2.2",
     "scraperjs": "1.2.0"

@@ -1,4 +1,6 @@
 .env
+.env.local
+.env.remote
 node_modules/
 package-lock.json
 *.zip

@@ -15,7 +15,6 @@ const _get_bookobj = (entry) => {
   let book = {};
   let person = {};
 
-  // console.log(entry);
   ATTRS.forEach((e,i) => {
     const value = entry[i];
 
@@ -37,7 +36,11 @@ class DB {
     this.db = await mongodb.MongoClient.connect(mongo_url);
   }
 
-  async updated(data) {
+  async updated(data, refresh) {
+    if (refresh) {
+      return data;
+    }
+
     const books = this.db.collection('books');
     const the_latest_item = await books.findOne({}, {fields: {release_date: 1},
                                                      sort: {release_date: -1}});
@@ -96,7 +99,6 @@ class DB {
       this._store_books(books_batch_list),
       this._store_persons(persons_batch_list)
     ]).then((res)=> {
-      // console.log(res[0].toJSON());
       return res[0].nUpserted + res[0].nModified;
     });
   }

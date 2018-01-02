@@ -1,8 +1,8 @@
 const request = require('request-promise');
 const AdmZip = require('adm-zip');
 const csvparse = require('csv-parse/lib/sync');
+const commandLineArgs = require('command-line-args');
 
-const DB = require('./db_mongo').DB;
 const ATTRS = require('./attrs').ATTRS;
 
 const LIST_URL_BASE = 'https://github.com/aozorabunko/aozorabunko/raw/master/index_pages/';
@@ -32,9 +32,11 @@ const type_conversion = (data) => {
     const value = data[i];
     if(['copyright', 'author_copyright'].includes(e)) {
       return value != 'なし';
-    } else if(['release_date', 'last_modified', 'date_of_birth', 'date_of_death',
-               'text_last_modified', 'html_last_modified'].includes(e)) {
-      return new Date(value);
+    } else if(['book_id', 'person_id', 'text_updated', 'html_updated'].includes(e)) {
+      return value == ''? -1: parseInt(value);
+    } else if(['release_date', 'last_modified', 'text_last_modified',
+               'html_last_modified'].includes(e)) {
+      return value == ''? null: new Date(value);
     } else if('role' == e) {
       return ROLE_MAP[value];
     } else {
@@ -47,26 +49,34 @@ const import_to_db = async (db, refresh) => {
   refresh = refresh || false;
 
   // const zfile = 'x10.zip';
-  // const zfile = 'list_person_all_extended_utf8.zip';
-  const zfile = undefined;
+  const zfile = 'list_person_all_extended_utf8.zip';
+  // const zfile = undefined;
 
-  const data = csvparse(await get_csv_data(zfile), {auto_parse: true, from: 2})
+  const data = csvparse(await get_csv_data(zfile), {from: 2})
         .map(type_conversion);
 
-  const updated = refresh? data: await db.updated(data);
+  const updated = await db.updated(data, refresh);
 
+  let count = 0;
   if(updated.length > 0) {
-    const count = await db.import(data);
-    console.log(`${count} entries are updated`);  // eslint-disable-line no-console
-  } else {
-    console.log(`zero entries are updated`);  // eslint-disable-line no-console
+    count = await db.import(updated);
   }
+  console.log(`${count} entries are updated`);  // eslint-disable-line no-console
 };
 
 const run = async () => {
+  const option_defs = [
+    { name: 'refresh', alias: 'r', type: Boolean , defaultValue: false},
+    { name: 'backend', alias: 'b', type: String, defaultValue: 'mongo' },
+  ];
+  const options = commandLineArgs(option_defs);
+
+  // const DB = require('./db_mongo').DB;
+  const DB = require('./db_' + options.backend).DB;
+
   const db = new DB();
   await db.connect();
-  const refresh = process.argv[2];
+  const refresh = options.refresh;
   await import_to_db(db, refresh);
   await db.close();
 };
