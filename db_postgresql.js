@@ -1,7 +1,6 @@
 require('dotenv').config();
 
 const pg = require('pg');
-const ATTRS = require('./attrs').ATTRS;
 
 class DB {
   constructor() {
@@ -18,11 +17,11 @@ class DB {
       return data;
     }
 
-    const the_latest_item = await this.client.query(
+    const the_latest = await this.client.query(
       'SELECT release_date FROM list ORDER BY release_date DESC LIMIT 1');
 
-    const last_release_date = (the_latest_item.rowCount > 0)?
-          the_latest_item.rows[0].release_date: new Date(null);
+    const last_release_date = (the_latest.rowCount > 0)?
+      the_latest.rows[0].release_date: new Date(null);
 
     return data.slice(1).filter((entry) => {
       return last_release_date < new Date(entry[11]);
