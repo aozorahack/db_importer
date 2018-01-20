@@ -4,7 +4,7 @@ const pg = require('pg');
 
 class DB {
   constructor() {
-    this.client = new pg.Client({database: 'aozora'});
+    this.client = new pg.Client({database: 'aozora', parseInputDatesAsUTC: true});
   }
 
   async connect() {
