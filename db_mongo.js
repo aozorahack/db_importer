@@ -77,9 +77,10 @@ class DB {
   async import(updated) {
     let books_batch_list = {};
     let persons_batch_list = {};
-    await Promise.all(updated.map(async (entry) => {
+    await Promise.all(updated.map((entry) => {
       const {book, role, person} = _get_bookobj(entry);
       if (!books_batch_list[book.book_id]) {
+        book.persons = [];
         books_batch_list[book.book_id] = book;
       }
       if (!books_batch_list[book.book_id][role]) {
@@ -89,6 +90,12 @@ class DB {
         person_id: person.person_id,
         last_name: person.last_name,
         first_name: person.first_name
+      });
+      books_batch_list[book.book_id].persons.push({
+        person_id: person.person_id,
+        last_name: person.last_name,
+        first_name: person.first_name,
+        role: role
       });
       if (!persons_batch_list[person.person_id]) {
         persons_batch_list[person.person_id] = person;
