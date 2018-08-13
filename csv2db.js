@@ -49,8 +49,8 @@ const import_to_db = async (db, refresh) => {
   refresh = refresh || false;
 
   // const zfile = 'x10.zip';
-  const zfile = 'list_person_all_extended_utf8.zip';
-  // const zfile = undefined;
+  // const zfile = 'list_person_all_extended_utf8.zip';
+  const zfile = undefined;
 
   const data = csvparse(await get_csv_data(zfile), {from: 2}).map(type_conversion);
 
