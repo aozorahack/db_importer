@@ -35,7 +35,7 @@ class DB {
       return res.map((e) => (e.rowCount)).reduce((a,b)=>(a+b), 0);
     }).catch((error)=> {
       console.error(error);
-    });;
+    });
   }
 
   async close() {
