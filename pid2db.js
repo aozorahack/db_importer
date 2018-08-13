@@ -27,7 +27,6 @@ const idurls = {
 };
 
 const run = async () => {
-  const db = await mongodb.MongoClient.connect(mongo_url);
   for(let idname in idurls) {
     const idurl = idurls[idname];
     const bulk_ops = (await scrape_url(idurl)).map((item) => {
@@ -36,10 +35,11 @@ const run = async () => {
                           update: item,
                           upsert: true}};
     });
-    console.log(`updated ${bulk_ops.length} entries`); // eslint-disable-line no-console
-    await db.collection(idname).bulkWrite(bulk_ops);
+    const client = await mongodb.MongoClient.connect(mongo_url, {useNewUrlParser: true});
+    const result = await client.db().collection(idname).bulkWrite(bulk_ops);
+    console.log(`updated ${result.upsertedCount} entries`); // eslint-disable-line no-console
+    client.close();
   }
-  db.close();
 };
 
 run();

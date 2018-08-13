@@ -33,7 +33,7 @@ const _get_bookobj = (entry) => {
 
 class DB {
   async connect() {
-    this.db = await mongodb.MongoClient.connect(mongo_url);
+    this.client = await mongodb.MongoClient.connect(mongo_url, {useNewUrlParser: true});
   }
 
   async updated(data, refresh) {
@@ -41,8 +41,8 @@ class DB {
       return data;
     }
 
-    const books = this.db.collection('books');
-    const the_latest_item = await books.findOne({}, {fields: {release_date: 1},
+    const books = this.client.db().collection('books');
+    const the_latest_item = await books.findOne({}, {projection: {release_date: 1},
                                                      sort: {release_date: -1}});
     const last_release_date =
           (the_latest_item)? the_latest_item.release_date: new Date('1970-01-01');
@@ -53,7 +53,7 @@ class DB {
   }
 
   async _store_books(books_batch_list) {
-    const books = this.db.collection('books');
+    const books = this.client.db().collection('books');
     const bulk_ops = Object.keys(books_batch_list).map((book_id) => {
       const book = books_batch_list[book_id];
       return {updateOne: {filter: {book_id: book.book_id},
@@ -64,7 +64,7 @@ class DB {
   }
 
   async _store_persons(persons_batch_list) {
-    const persons = this.db.collection('persons');
+    const persons = this.client.db().collection('persons');
     const bulk_ops = Object.keys(persons_batch_list).map((person_id) => {
       const person = persons_batch_list[person_id];
       return {updateOne: {filter: {person_id: person.person_id},
@@ -110,7 +110,7 @@ class DB {
     });
   }
   async close() {
-    this.db.close();
+    this.client.close();
   }
 }
 
