@@ -1,4 +1,5 @@
 const Crawler = require('crawler');
+const rp = require('request-promise');
 
 require('dotenv').config();
 
@@ -67,6 +68,7 @@ const ymfmt = '%4d_%02d';
 const run = () => {
 
   mongodb.MongoClient.connect(mongo_url, {useNewUrlParser: true}).then((client) => {
+    const etags = client.db().collection('ranking_etags');
     const crawler = new Crawler({
       callback: process_response,
       retries: 0,
@@ -75,35 +77,66 @@ const run = () => {
     });
 
     /*
-      crawler.queue({
-      url: 'https://www.aozora.gr.jp/access_ranking/2017_08_xhtml.html',
-      year_month: '2017_08',
-      type: 'xhtml'
-      });
+      url = 'https://www.aozora.gr.jp/access_ranking/2018_08_xhtml.html';
     */
 
+    let promises = [];
     for(let year = 2009; year <= (new Date()).getFullYear(); year++) {
     // for(let year = 2009; year <= 2009; year++) {
       for(let month = 1; month <= 12; month++) {
+      // for(let month = 1; month <= 1; month++) {
         for(let type of ['xhtml', 'txt']) {
+        // for(let type of ['xhtml']) {
           const year_month = sprintf(ymfmt, year, month);
-          const url = `https://www.aozora.gr.jp/access_ranking/${year_month}_${type}.html`;
-          crawler.queue({
-            url: url,
-            year_month: year_month,
-            type: type
-          });
+          const year_month_type = `${year_month}_${type}`;
+          const url = `https://www.aozora.gr.jp/access_ranking/${year_month_type}.html`;
+
+          promises.push(etags.findOne({year_month_type: year_month_type}).then((entry)=>{
+            let options = {
+              url: url,
+              headers: {
+                'User-Agent': 'Mozilla/5.0'
+              }
+            };
+            if (entry) {
+              options.headers['If-None-Match'] = entry.etag;
+            }
+            return rp.head(options);
+
+          }).then((header)=>{
+            crawler.queue({
+              url: url,
+              year_month: year_month,
+              type: type
+            });
+            return etags.replaceOne({year_month_type: year_month_type},
+                                    {year_month_type: year_month_type,
+                                     etag: header.etag},
+                                    {upsert: true});
+          }).then((result)=> {
+            console.log(`Updated etag: ${result.ops[0].year_month_type}`); // eslint-disable-line no-console
+            return Promise.resolve()
+          }).catch((error) => {
+            if(error.statusCode != 304 && error.statusCode != 404) {
+              console.log(error);
+            }
+            return Promise.resolve()
+          }));
         }
       }
     }
-
-    crawler.on('drain', () => {
-      client.close();
+    Promise.all(promises).then((result)=> {
+      if (crawler.queueSize > 0) {
+        crawler.on('drain', () => {
+          client.close();
+        });
+      } else {
+        client.close();
+      }
     });
   }).catch((error)=> {
     console.error('error', error);
   });
 };
-
 
 run();
