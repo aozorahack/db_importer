@@ -109,23 +109,23 @@ const run = () => {
               year_month: year_month,
               type: type
             });
-            return etags.replaceOne({year_month_type: year_month_type},
-                                    {year_month_type: year_month_type,
-                                     etag: header.etag},
-                                    {upsert: true});
+            return etags.replaceOne(
+              {year_month_type: year_month_type},
+              {year_month_type: year_month_type, etag: header.etag},
+              {upsert: true});
           }).then((result)=> {
             console.log(`Updated etag: ${result.ops[0].year_month_type}`); // eslint-disable-line no-console
-            return Promise.resolve()
+            return Promise.resolve();
           }).catch((error) => {
             if(error.statusCode != 304 && error.statusCode != 404) {
-              console.log(error);
+              console.error(error);
             }
-            return Promise.resolve()
+            return Promise.resolve();
           }));
         }
       }
     }
-    Promise.all(promises).then((result)=> {
+    Promise.all(promises).then(()=> {
       if (crawler.queueSize > 0) {
         crawler.on('drain', () => {
           client.close();
