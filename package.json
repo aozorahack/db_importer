@@ -1,26 +1,33 @@
 {
-  "name": "aozora_importdb",
-  "version": "0.1.0",
-  "description": "import Aozora books/persons information to a DB",
+  "name": "db_importer",
+  "version": "0.2.0",
+  "description": "import Aozora books/persons/ranking information to a DB",
   "scripts": {
-    "execute": "node csv2db.js && node pid2db.js",
+    "execute": "node csv2db.js && node pid2db.js && node ranking2db.js",
     "lint": "eslint *.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Kenichi Sato <ksato9700@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aozorahack/db_importer.git"
+  },
   "license": "MIT",
   "dependencies": {
     "adm-zip": "0.4.11",
+    "ajv": "6.5.3",
     "command-line-args": "5.0.2",
+    "crawler": "1.2.0",
     "csv-parse": "2.5.0",
     "dotenv": "6.0.0",
     "mongodb": "3.1.2",
     "pg": "7.4.3",
     "request": "2.88.0",
     "request-promise": "4.2.2",
-    "scraperjs": "1.2.0"
+    "scraperjs": "1.2.0",
+    "sprintf-js": "1.1.1"
   },
   "devDependencies": {
-    "eslint": "5.3.0"
+    "eslint": "5.6.0"
   }
 }
