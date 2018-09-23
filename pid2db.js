@@ -1,4 +1,5 @@
-const scraperjs = require('scraperjs');
+const rp = require('request-promise');
+const cheerio = require('cheerio');
 
 require('dotenv').config();
 
@@ -8,17 +9,18 @@ const mongodb_host = process.env.AOZORA_MONGODB_HOST || 'localhost';
 const mongodb_port = process.env.AOZORA_MONGODB_PORT || '27017';
 const mongo_url = `mongodb://${mongodb_credential}${mongodb_host}:${mongodb_port}/aozora`;
 
-const scrape_url = (idurl) => {
-  return scraperjs.StaticScraper.create(idurl)
-    .scrape(($) => {
-      return $('tr[valign]').map(function() {
-        return {id: $(this).find(':nth-child(1)').text().trim(),
-                name: $(this).find(':nth-child(2)').text().trim().replace('　',' ')};
-      }).get();
-    })
-    .then((items) => {
-      return items.slice(1);
-    });
+const transform = (body) => {
+  const $ = cheerio.load(body);
+  const items = $('tr[valign]').map(function() {
+    return {id: parseInt($(this).find(':nth-child(1)').text().trim()),
+            name: $(this).find(':nth-child(2)').text().trim().replace('　',' ')};
+  }).get().slice(1);
+
+  return items.map((item)=> {
+    return {updateOne: {filter: {id: item.id},
+                        update: item,
+                        upsert: true}};
+  });
 };
 
 const idurls = {
@@ -29,12 +31,13 @@ const idurls = {
 const run = async () => {
   for(let idname in idurls) {
     const idurl = idurls[idname];
-    const bulk_ops = (await scrape_url(idurl)).map((item) => {
-      item.id = parseInt(item.id);
-      return {updateOne: {filter: {id: item.id},
-                          update: item,
-                          upsert: true}};
-    });
+    const options = {
+      url: idurl,
+      transform: transform
+    };
+
+    const bulk_ops = await rp.get(options);
+
     const client = await mongodb.MongoClient.connect(mongo_url, {useNewUrlParser: true});
     const result = await client.db().collection(idname).bulkWrite(bulk_ops);
     console.log(`updated ${result.upsertedCount} entries`); // eslint-disable-line no-console
