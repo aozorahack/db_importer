@@ -4,15 +4,13 @@ const Bottleneck = require('bottleneck');
 
 require('dotenv').config();
 
-const sprintf = require('sprintf-js').sprintf;
-
 const mongodb = require('mongodb');
 const mongodb_credential = process.env.AOZORA_MONGODB_CREDENTIAL || '';
 const mongodb_host = process.env.AOZORA_MONGODB_HOST || 'localhost';
 const mongodb_port = process.env.AOZORA_MONGODB_PORT || '27017';
 const mongo_url = `mongodb://${mongodb_credential}${mongodb_host}:${mongodb_port}/aozora`;
 
-const base_url = 'https://www.aozora.gr.jp/access_ranking/'
+const base_url = 'https://www.aozora.gr.jp/access_ranking/';
 
 const re = /.*card(\d+).html/;
 
@@ -82,10 +80,10 @@ const process_response_top = (error, res, done) => {
     res.$('a').map((idx, a)=>{
       const hrefre = /(\d+)_(\d+)_(.+)\.html/.exec(res.$(a).attr('href'));
       if(hrefre) {
-        const year_month = `${hrefre[1]}_${hrefre[2]}`
-        const type = hrefre[3]
-        const year_month_type = `${year_month}_${type}`
-        const url = base_url + hrefre.input
+        const year_month = `${hrefre[1]}_${hrefre[2]}`;
+        const type = hrefre[3];
+        const year_month_type = `${year_month}_${type}`;
+        const url = base_url + hrefre.input;
         // const url = 'https://www.aozora.gr.jp/access_ranking/2018_08_xhtml.html';
 
         const etags = client.db().collection('ranking_etags');
@@ -105,7 +103,7 @@ const process_response_top = (error, res, done) => {
               options.headers['If-None-Match'] = entry.etag;
             }
             // console.log('>', year_month,type);
-            return rp.head(options)
+            return rp.head(options);
           }).then((header)=>{
             // console.log('<', year_month,type);
             crawler.queue({
@@ -127,7 +125,8 @@ const process_response_top = (error, res, done) => {
               console.error(error);
             }
             return Promise.resolve();
-          })}));
+          });
+        }));
       }
     });
     Promise.all(promises).then(()=> {
@@ -143,8 +142,6 @@ const process_response_top = (error, res, done) => {
   }
 };
 
-const ymfmt = '%4d_%02d';
-
 const run = () => {
 
   mongodb.MongoClient.connect(mongo_url, {useNewUrlParser: true}).then((client) => {
@@ -157,7 +154,7 @@ const run = () => {
       url: base_url,
       callback: process_response_top,
       crawler: crawler
-    })
+    });
   });
 };
 
