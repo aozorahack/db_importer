@@ -13,7 +13,8 @@
       2,
       {
         "ArrayExpression": "first",
-        "ObjectExpression": "first"
+        "ObjectExpression": "first",
+        "CallExpression": {"arguments": "first"}
       }
     ],
     "no-constant-condition": [

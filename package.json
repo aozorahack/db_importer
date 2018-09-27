@@ -16,10 +16,8 @@
   "dependencies": {
     "adm-zip": "0.4.11",
     "ajv": "6.5.3",
-    "bottleneck": "2.11.0",
     "cheerio": "1.0.0-rc.2",
     "command-line-args": "5.0.2",
-    "crawler": "1.2.0",
     "csv-parse": "2.5.0",
     "dotenv": "6.0.0",
     "mongodb": "3.1.2",
