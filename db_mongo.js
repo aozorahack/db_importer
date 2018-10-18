@@ -4,6 +4,7 @@ const mongodb = require('mongodb');
 const mongodb_credential = process.env.AOZORA_MONGODB_CREDENTIAL || '';
 const mongodb_host = process.env.AOZORA_MONGODB_HOST || 'localhost';
 const mongodb_port = process.env.AOZORA_MONGODB_PORT || '27017';
+const mongodb_replica_set = process.env.AOZORA_MONGODB_REPLICA_SET;
 const mongo_url = `mongodb://${mongodb_credential}${mongodb_host}:${mongodb_port}/aozora`;
 
 const ATTRS = require('./attrs').ATTRS;
@@ -33,7 +34,18 @@ const _get_bookobj = (entry) => {
 
 class DB {
   async connect() {
-    this.client = await mongodb.MongoClient.connect(mongo_url, {useNewUrlParser: true});
+    let options = {useNewUrlParser: true};
+    if(mongodb_replica_set) {
+      options.ssl = true;
+      options.replicaSet = mongodb_replica_set;
+      options.authMechanism = 'SCRAM-SHA-1';
+      options.authSource = 'admin';
+    }
+    this.client = await mongodb.MongoClient.connect(mongo_url, options);
+  }
+
+  collection(name) {
+    return this.client.db().collection(name);
   }
 
   async updated(data, refresh) {
@@ -41,7 +53,7 @@ class DB {
       return data;
     }
 
-    const books = this.client.db().collection('books');
+    const books = this.collection('books');
     const the_latest_item = await books.findOne({}, {projection: {release_date: 1},
                                                      sort: {release_date: -1}});
     const last_release_date =

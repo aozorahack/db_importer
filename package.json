@@ -20,7 +20,7 @@
     "command-line-args": "5.0.2",
     "csv-parse": "2.5.0",
     "dotenv": "6.0.0",
-    "mongodb": "3.1.2",
+    "mongodb": "3.1.8",
     "pg": "7.4.3",
     "request": "2.88.0",
     "request-promise": "4.2.2"
