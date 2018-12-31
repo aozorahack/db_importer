@@ -14,18 +14,18 @@
   },
   "license": "MIT",
   "dependencies": {
-    "adm-zip": "0.4.11",
-    "ajv": "6.5.3",
+    "adm-zip": "0.4.13",
+    "ajv": "6.6.2",
     "cheerio": "1.0.0-rc.2",
     "command-line-args": "5.0.2",
-    "csv-parse": "2.5.0",
-    "dotenv": "6.0.0",
-    "mongodb": "3.1.8",
-    "pg": "7.4.3",
+    "csv-parse": "4.3.0",
+    "dotenv": "6.2.0",
+    "mongodb": "3.1.10",
+    "pg": "7.7.1",
     "request": "2.88.0",
     "request-promise": "4.2.2"
   },
   "devDependencies": {
-    "eslint": "5.6.0"
+    "eslint": "5.11.1"
   }
 }
