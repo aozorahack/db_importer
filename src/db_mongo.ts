@@ -180,6 +180,24 @@ class DB implements IDB {
     return result.upsertedCount;
   }
 
+  public async find_bookids(collection: string, query: object): Promise<number[]> {
+    return this._collection(collection).find(query)
+      .map((e: {book_id: number}) => e.book_id).toArray();
+  }
+
+  public find_one<T>(collection: string, query: object): Promise<T> {
+    return this._collection(collection).findOne<T>(query);
+  }
+
+  public create_index(collection: string, spec: object, options: object) {
+    return this._collection(collection).createIndex(spec, options);
+  }
+
+  public replace_one(collection: string, filter: object, doc: object,
+                     options: object): Promise<object> {
+    return this._collection(collection).replaceOne(filter, doc, options);
+  }
+
   public async close() {
     this.client.close();
   }
