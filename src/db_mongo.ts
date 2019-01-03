@@ -129,16 +129,12 @@ class DB implements IDB {
     this.client = await mongodb.MongoClient.connect(mongo_url, options);
   }
 
-  public collection(name: string) {
-    return this.client.db().collection(name);
-  }
-
   public async updated(data: string[], refresh: boolean) {
     if (refresh) {
       return data;
     }
 
-    const books = this.collection('books');
+    const books = this._collection('books');
     const the_latest_item = await books.findOne({}, {projection: {release_date: 1},
                                                      sort: {release_date: -1}});
     const last_release_date =
@@ -149,7 +145,7 @@ class DB implements IDB {
     });
   }
 
-  public async import(updated: any): Promise<number> {
+  public async import_books_persons(updated: any): Promise<number> {
     const books_batch_list: BookList = {};
     const persons_batch_list: PersonList = {};
     await Promise.all(updated.map((entry: StringMap) => {
@@ -166,14 +162,6 @@ class DB implements IDB {
         last_name: person.last_name,
         person_id: person.person_id,
       });
-      /*
-      books_batch_list[book.book_id].persons.push({
-        person_id: person.person_id,
-        last_name: person.last_name,
-        first_name: person.first_name,
-        role: role
-      });
-      */
       if (!persons_batch_list[person.person_id]) {
         persons_batch_list[person.person_id] = person;
       }
@@ -187,12 +175,21 @@ class DB implements IDB {
     });
   }
 
+  public async import_byname(name: string, bulk_ops: any): Promise<number> {
+    const result = await this._collection(name).bulkWrite(bulk_ops);
+    return result.upsertedCount;
+  }
+
   public async close() {
     this.client.close();
   }
 
+  private _collection(name: string) {
+    return this.client.db().collection(name);
+  }
+
   private async _store_books(books_batch_list: BookList) {
-    const books = this.client.db().collection('books');
+    const books = this._collection('books');
     const operations = Object.keys(books_batch_list).map((book_id) => {
       const book = books_batch_list[book_id];
       return {updateOne: {filter: {book_id: book.book_id},
@@ -204,7 +201,7 @@ class DB implements IDB {
   }
 
   private async _store_persons(persons_batch_list: PersonList) {
-    const persons = this.client.db().collection('persons');
+    const persons = this._collection('persons');
     const operations = Object.keys(persons_batch_list).map((person_id) => {
       const person = persons_batch_list[person_id];
       return {updateOne: {filter: {person_id: person.person_id},

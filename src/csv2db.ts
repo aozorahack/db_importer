@@ -64,7 +64,7 @@ async function import_to_db(db: IDB, refresh = false) {
 
   let count = 0;
   if (updated.length > 0) {
-    count = await db.import(updated);
+    count = await db.import_books_persons(updated);
   }
   // tslint:disable-next-line:no-console
   console.log(`${count} entries are updated`);
