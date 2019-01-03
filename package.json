@@ -1,6 +1,6 @@
 {
   "name": "db_importer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "import Aozora books/persons/ranking information to a DB",
   "scripts": {
     "execute": "node dist/csv2db.js && node dist/pid2db.js && node dist/ranking2db.js",
