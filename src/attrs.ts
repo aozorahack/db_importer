@@ -53,5 +53,5 @@ export const ATTRS = [
   'html_last_modified',
   'html_encoding',
   'html_charset',
-  'html_updated'
+  'html_updated',
 ];

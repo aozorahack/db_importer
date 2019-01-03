@@ -1,5 +1,6 @@
 import commandLineArgs from 'command-line-args';
 import csvparse from 'csv-parse/lib/sync';
+
 import * as csvlib from 'csv-parse/lib';
 import * as rp from 'request-promise';
 
@@ -12,7 +13,7 @@ import {ATTRS} from './attrs';
 const LIST_URL_BASE = 'https://github.com/aozorabunko/aozorabunko/raw/master/index_pages/';
 const LIST_URL_PUB = 'list_person_all_extended_utf8.zip';
 
-const ROLE_MAP: { [key:string]:string } = {
+const ROLE_MAP: { [key: string]: string } = {
   校訂者: 'revisers',
   編者: 'editors',
   翻訳者: 'translators',
@@ -31,7 +32,7 @@ async function get_csv_data(local_file: string | null): Promise<string> {
   return zip.readFile(zip.getEntries()[0]).toString();
 }
 
-function type_conversion(data: Array<string>) {
+function type_conversion(data: string[]) {
   return ATTRS.map((e, i) => {
     const value = data[i];
     if (['copyright', 'author_copyright'].includes(e)) {
@@ -54,9 +55,9 @@ async function import_to_db(db: IDB, refresh = false) {
   // const zfile = 'list_person_all_extended_utf8.zip';
   const zfile: null = null;
 
-  const input: string = await get_csv_data(zfile)
+  const input: string = await get_csv_data(zfile);
   const options: csvlib.Options = {from: 2};
-  const parse_result = csvparse(input, options)
+  const parse_result = csvparse(input, options);
   const data = parse_result.map(type_conversion);
 
   const updated = await db.updated(data, refresh);
@@ -70,7 +71,7 @@ async function import_to_db(db: IDB, refresh = false) {
 }
 
 async function run() {
-  const option_defs:commandLineArgs.OptionDefinition[] = [
+  const option_defs: commandLineArgs.OptionDefinition[] = [
     { name: 'refresh', alias: 'r', type: Boolean , defaultValue: false},
     { name: 'backend', alias: 'b', type: String, defaultValue: 'mongo' },
   ];

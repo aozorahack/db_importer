@@ -65,7 +65,7 @@ type Book = {
   html_encoding?: string;
   html_charset?: string;
   html_updated?: string;
-}
+};
 
 type Person = { [index: string]: string
   person_id?: string;
@@ -88,40 +88,39 @@ type BookRolePerson = {
   person: Person,
 };
 
-type BookList = {[key: string]: Book}
-type PersonList = {[key: string]: Person}
+type BookList = {[key: string]: Book};
+type PersonList = {[key: string]: Person};
 
 function _separate_obj(entry: StringMap): BookRolePerson {
-  let book: Book = {};
-  let person: Person = {};
+  const book: Book = {};
+  const person: Person = {};
+  let role = null;
 
-  ATTRS.forEach((e,i) => {
+  ATTRS.forEach((e, i) => {
     const value = entry[i];
 
-    if(['person_id', 'first_name', 'last_name', 'last_name_yomi', 'first_name_yomi',
-        'last_name_sort', 'first_name_sort', 'last_name_roman', 'first_name_roman',
-        'date_of_birth', 'date_of_death', 'author_copyright'].includes(e)) {
+    if (['person_id', 'first_name', 'last_name', 'last_name_yomi',
+         'first_name_yomi', 'last_name_sort', 'first_name_sort',
+         'last_name_roman', 'first_name_roman', 'date_of_birth',
+         'date_of_death', 'author_copyright'].includes(e)) {
       person[e] = value;
-    } else if(e == 'role') {
-      // do nothing
+    } else if (e === 'role') {
+      role = value;
     } else {
       book[e] = value;
     }
   });
-  return {book: book, role: entry[ATTRS.indexOf('role')], person: person};
-};
+  return {book, role, person};
+}
 
 import {IDB} from './i_db';
 
 class DB implements IDB {
-  client: mongodb.MongoClient;
+  private client: mongodb.MongoClient;
 
-  constructor() {
-  }
-
-  async connect() {
-    let options: mongodb.MongoClientOptions = {useNewUrlParser: true};
-    if(mongodb_replica_set) {
+  public async connect() {
+    const options: mongodb.MongoClientOptions = {useNewUrlParser: true};
+    if (mongodb_replica_set) {
       options.ssl = true;
       options.replicaSet = mongodb_replica_set;
       options.authMechanism = 'SCRAM-SHA-1';
@@ -130,11 +129,11 @@ class DB implements IDB {
     this.client = await mongodb.MongoClient.connect(mongo_url, options);
   }
 
-  collection(name: string) {
+  public collection(name: string) {
     return this.client.db().collection(name);
   }
 
-  async updated(data: string[], refresh: boolean) {
+  public async updated(data: string[], refresh: boolean) {
     if (refresh) {
       return data;
     }
@@ -143,40 +142,16 @@ class DB implements IDB {
     const the_latest_item = await books.findOne({}, {projection: {release_date: 1},
                                                      sort: {release_date: -1}});
     const last_release_date =
-          (the_latest_item)? the_latest_item.release_date: new Date('1970-01-01');
+      (the_latest_item) ? the_latest_item.release_date : new Date('1970-01-01');
 
     return data.slice(1).filter((entry) => {
       return last_release_date < new Date(entry[11]);
     });
   }
 
-  async _store_books(books_batch_list: BookList) {
-    const books = this.client.db().collection('books');
-    const operations = Object.keys(books_batch_list).map((book_id) => {
-      const book = books_batch_list[book_id];
-      return {updateOne: {filter: {book_id: book.book_id},
-                          update: book,
-                          upsert: true}};
-    });
-    const options: mongodb.CollectionBulkWriteOptions = { ordered: false };
-    return books.bulkWrite(operations, options);
-  }
-
-  async _store_persons(persons_batch_list: PersonList) {
-    const persons = this.client.db().collection('persons');
-    const operations = Object.keys(persons_batch_list).map((person_id) => {
-      const person = persons_batch_list[person_id];
-      return {updateOne: {filter: {person_id: person.person_id},
-                          update: person,
-                          upsert: true}};
-    });
-    const options: mongodb.CollectionBulkWriteOptions = { ordered: false };
-    return persons.bulkWrite(operations, options);
-  }
-
-  async import(updated: any): Promise<number> {
-    let books_batch_list: BookList = {};
-    let persons_batch_list: PersonList = {};
+  public async import(updated: any): Promise<number> {
+    const books_batch_list: BookList = {};
+    const persons_batch_list: PersonList = {};
     await Promise.all(updated.map((entry: StringMap) => {
       const {book, role, person} = _separate_obj(entry);
       if (!books_batch_list[book.book_id]) {
@@ -187,9 +162,9 @@ class DB implements IDB {
         books_batch_list[book.book_id][role] = [];
       }
       (books_batch_list[book.book_id][role] as StringMap[]).push({
-        person_id: person.person_id,
+        first_name: person.first_name,
         last_name: person.last_name,
-        first_name: person.first_name
+        person_id: person.person_id,
       });
       /*
       books_batch_list[book.book_id].persons.push({
@@ -206,13 +181,38 @@ class DB implements IDB {
 
     return Promise.all([
       this._store_books(books_batch_list),
-      this._store_persons(persons_batch_list)
-    ]).then((res)=> {
+      this._store_persons(persons_batch_list),
+    ]).then((res) => {
       return res[0].upsertedCount + res[0].modifiedCount;
     });
   }
-  async close() {
+
+  public async close() {
     this.client.close();
+  }
+
+  private async _store_books(books_batch_list: BookList) {
+    const books = this.client.db().collection('books');
+    const operations = Object.keys(books_batch_list).map((book_id) => {
+      const book = books_batch_list[book_id];
+      return {updateOne: {filter: {book_id: book.book_id},
+                          update: book,
+                          upsert: true}};
+    });
+    const options: mongodb.CollectionBulkWriteOptions = { ordered: false };
+    return books.bulkWrite(operations, options);
+  }
+
+  private async _store_persons(persons_batch_list: PersonList) {
+    const persons = this.client.db().collection('persons');
+    const operations = Object.keys(persons_batch_list).map((person_id) => {
+      const person = persons_batch_list[person_id];
+      return {updateOne: {filter: {person_id: person.person_id},
+                          update: person,
+                          upsert: true}};
+    });
+    const options: mongodb.CollectionBulkWriteOptions = { ordered: false };
+    return persons.bulkWrite(operations, options);
   }
 }
 
