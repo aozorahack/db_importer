@@ -132,7 +132,10 @@ class DB implements IDB {
     private client: mongodb.MongoClient;
 
     public async connect(): Promise<void> {
-        const options: mongodb.MongoClientOptions = { useNewUrlParser: true };
+        const options: mongodb.MongoClientOptions = {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        };
         if (mongodb_replica_set) {
             options.ssl = true;
             options.replicaSet = mongodb_replica_set;
@@ -152,7 +155,9 @@ class DB implements IDB {
             {},
             { projection: { release_date: 1 }, sort: { release_date: -1 } }
         );
-        const last_release_date = the_latest_item ? the_latest_item.release_date : new Date('1970-01-01');
+        const last_release_date = the_latest_item
+            ? the_latest_item.release_date
+            : new Date('1970-01-01');
 
         return data.slice(1).filter(entry => {
             return last_release_date < new Date(entry[11]);
@@ -183,7 +188,10 @@ class DB implements IDB {
             })
         );
 
-        return Promise.all([this._store_books(books_batch_list), this._store_persons(persons_batch_list)]).then(res => {
+        return Promise.all([
+            this._store_books(books_batch_list),
+            this._store_persons(persons_batch_list)
+        ]).then(res => {
             return res[0].upsertedCount + res[0].modifiedCount;
         });
     }
@@ -208,7 +216,12 @@ class DB implements IDB {
         return this._collection(collection).createIndex(spec, options);
     }
 
-    public replace_one(collection: string, filter: object, doc: object, options: object): Promise<object> {
+    public replace_one(
+        collection: string,
+        filter: object,
+        doc: object,
+        options: object
+    ): Promise<object> {
         return this._collection(collection).replaceOne(filter, doc, options);
     }
 
@@ -220,7 +233,9 @@ class DB implements IDB {
         return this.client.db().collection(name);
     }
 
-    private async _store_books(books_batch_list: BookList): Promise<mongodb.BulkWriteOpResultObject> {
+    private async _store_books(
+        books_batch_list: BookList
+    ): Promise<mongodb.BulkWriteOpResultObject> {
         const books = this._collection('books');
         const operations = Object.keys(books_batch_list).map(book_id => {
             const book = books_batch_list[book_id];
@@ -230,11 +245,15 @@ class DB implements IDB {
         return books.bulkWrite(operations, options);
     }
 
-    private async _store_persons(persons_batch_list: PersonList): Promise<mongodb.BulkWriteOpResultObject> {
+    private async _store_persons(
+        persons_batch_list: PersonList
+    ): Promise<mongodb.BulkWriteOpResultObject> {
         const persons = this._collection('persons');
         const operations = Object.keys(persons_batch_list).map(person_id => {
             const person = persons_batch_list[person_id];
-            return { updateOne: { filter: { person_id: person.person_id }, update: person, upsert: true } };
+            return {
+                updateOne: { filter: { person_id: person.person_id }, update: person, upsert: true }
+            };
         });
         const options: mongodb.CollectionBulkWriteOptions = { ordered: false };
         return persons.bulkWrite(operations, options);
