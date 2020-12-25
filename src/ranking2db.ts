@@ -43,7 +43,7 @@ function process_response($: CheerioStatic, year_month: string, book_ids: number
                     10
                 )
             };
-            return { updateOne: { filter: query, update: entry, upsert: true } };
+            return { updateOne: { filter: query, update: {$set: entry}, upsert: true } };
         })
         .get();
 }

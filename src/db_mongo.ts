@@ -239,7 +239,7 @@ class DB implements IDB {
         const books = this._collection('books');
         const operations = Object.keys(books_batch_list).map(book_id => {
             const book = books_batch_list[book_id];
-            return { updateOne: { filter: { book_id: book.book_id }, update: book, upsert: true } };
+            return { updateOne: { filter: { book_id: book.book_id }, update: {$set: book}, upsert: true } };
         });
         const options: mongodb.CollectionBulkWriteOptions = { ordered: false };
         return books.bulkWrite(operations, options);
@@ -252,7 +252,7 @@ class DB implements IDB {
         const operations = Object.keys(persons_batch_list).map(person_id => {
             const person = persons_batch_list[person_id];
             return {
-                updateOne: { filter: { person_id: person.person_id }, update: person, upsert: true }
+                updateOne: { filter: { person_id: person.person_id }, update: {$set: person}, upsert: true }
             };
         });
         const options: mongodb.CollectionBulkWriteOptions = { ordered: false };

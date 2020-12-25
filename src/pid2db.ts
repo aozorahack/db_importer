@@ -38,7 +38,7 @@ function transform(body: string): object[] {
         .slice(1);
 
     return items.map((item: Worker) => {
-        return { updateOne: { filter: { id: item.id }, update: item, upsert: true } };
+        return { updateOne: { filter: { id: item.id }, update: {$set: item}, upsert: true } };
     });
 }
 
