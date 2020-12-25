@@ -181,6 +181,7 @@ class DB implements IDB {
                 (books_batch_list[book.book_id][role] as StringMap[]).push({
                     first_name: person.first_name,
                     last_name: person.last_name,
+                    full_name: person.last_name + person.first_name,
                     person_id: person.person_id
                 });
                 if (!persons_batch_list[person.person_id]) {
