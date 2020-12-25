@@ -142,6 +142,7 @@ class DB implements IDB {
             options.authMechanism = 'SCRAM-SHA-1';
             options.authSource = 'admin';
         }
+        console.log(mongo_url, options);
         this.client = await mongodb.MongoClient.connect(mongo_url, options);
     }
 
