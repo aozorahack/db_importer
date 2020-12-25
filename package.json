@@ -1,6 +1,6 @@
 {
   "name": "db_importer",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "import Aozora books/persons/ranking information to a DB",
   "scripts": {
     "execute": "node dist/csv2db.js && node dist/pid2db.js && node dist/ranking2db.js",
@@ -13,7 +13,7 @@
     "url": "https://github.com/aozorahack/db_importer.git"
   },
   "engines": {
-    "node": "12.x"
+    "node": "14.x"
   },
   "license": "MIT",
   "dependencies": {
