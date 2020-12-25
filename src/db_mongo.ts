@@ -185,6 +185,7 @@ class DB implements IDB {
                     person_id: person.person_id
                 });
                 if (!persons_batch_list[person.person_id]) {
+                    person.full_name = person.last_name + person.first_name;
                     persons_batch_list[person.person_id] = person;
                 }
             })
